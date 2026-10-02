@@ -21,9 +21,19 @@ class VidCellar_Activator {
         if ( version_compare( $v, VIDCELLAR_VERSION, '<' ) ) {
             self::create_tables();
             self::create_storage_dirs();
-            self::create_pages();
             update_option( 'vidcellar_db_version', VIDCELLAR_VERSION );
+            // This runs on plugins_loaded, before $wp_rewrite exists, and
+            // wp_insert_post() needs it to build the page permalink.
+            if ( did_action( 'init' ) ) {
+                self::create_pages();
+            } else {
+                add_action( 'init', [ __CLASS__, 'create_missing_pages' ], 20 );
+            }
         }
+    }
+
+    public static function create_missing_pages(): void {
+        self::create_pages();
     }
 
     public static function deactivate(): void {
@@ -223,6 +233,19 @@ class VidCellar_Activator {
         ] as $option => $def ) {
             $id = (int) get_option( $option, 0 );
             if ( $id && get_post( $id ) ) {
+                continue;
+            }
+            // Reuse a published page that already holds the shortcode instead of adding a duplicate.
+            global $wpdb;
+            $existing = (int) $wpdb->get_var( $wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'page' AND post_status = 'publish' AND post_content LIKE %s ORDER BY ID ASC LIMIT 1",
+                '%' . $wpdb->esc_like( $def['shortcode'] ) . '%'
+            ) );
+            if ( $existing ) {
+                update_option( $option, $existing );
+                continue;
+            }
+            if ( empty( $GLOBALS['wp_rewrite'] ) ) {
                 continue;
             }
             $page = wp_insert_post( [
