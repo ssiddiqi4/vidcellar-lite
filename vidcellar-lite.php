@@ -2,7 +2,7 @@
 /**
  * Plugin Name: VidCellar Lite
  * Description: Free WordPress video library and secure private video playback with categories, ratings, thumbnails, and resumable large-file uploads.
- * Version: 1.1.8
+ * Version: 1.1.9
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Suhaib Siddiqi
@@ -13,7 +13,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'VIDCELLAR_VERSION', '1.1.8' );
+define( 'VIDCELLAR_VERSION', '1.1.9' );
 define( 'VIDCELLAR_PLUGIN_FILE', __FILE__ );
 define( 'VIDCELLAR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VIDCELLAR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
