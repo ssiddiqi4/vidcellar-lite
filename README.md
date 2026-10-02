@@ -4,7 +4,7 @@ Tags: video, video streaming, video player, video categories
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.12
+Stable tag: 1.1.13
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -92,6 +92,9 @@ An optional Pro add-on is a separate premium product that is not included in thi
 
 == Upgrade Notice ==
 
+= 1.1.13 =
+Categories can now be renamed with the new Edit button.
+
 = 1.1.12 =
 The Delete button now shows on every category, including the last one.
 
@@ -126,6 +129,9 @@ Removes the duplicate VidCellar admin submenu so Videos is the first item.
 WordPress.org review fixes: distinctive plugin name/slug, enqueued admin JavaScript, and reviews table schema compatibility.
 
 == Changelog ==
+
+= 1.1.13 =
+* Added: an Edit button on VidCellar > Categories to rename a category. Its videos keep the category under the new name.
 
 = 1.1.12 =
 * The Delete button now shows on every category, including the last one. Deleting the last category leaves its videos uncategorized, and the Add Video form asks you to add a category first.
