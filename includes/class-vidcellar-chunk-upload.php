@@ -87,8 +87,9 @@ class VidCellar_Chunk_Upload
         $totalChunks = self::positive_int(self::request_value('total_chunks', 0));
         $lastModified = self::positive_int(self::request_value('last_modified', 0));
 
-        if (!$rawChunk && isset( $chunkFile['error'] ) ? (int) $chunkFile['error'] : UPLOAD_ERR_NO_FILE !== UPLOAD_ERR_OK) {
-            $errorCode = isset( $chunkFile['error'] ) ? (int) $chunkFile['error'] : UPLOAD_ERR_NO_FILE;
+        // Raw octet-stream chunks have no $_FILES entry, so only multipart chunks carry an upload error code.
+        $errorCode = $rawChunk ? UPLOAD_ERR_OK : ( isset( $chunkFile['error'] ) ? (int) $chunkFile['error'] : UPLOAD_ERR_NO_FILE );
+        if ($errorCode !== UPLOAD_ERR_OK) {
             $status = in_array($errorCode, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true) ? 413 : 400;
             wp_send_json_error([
                 'message' => self::upload_error_message($errorCode),

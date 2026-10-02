@@ -80,6 +80,8 @@
                 stars.textContent = '★★★★★'.split('').map((_, i) => i + 1 <= rounded ? '★' : '☆').join('');
                 stars.setAttribute('aria-label', 'Rating ' + Number(data.average || 0).toFixed(1) + ' out of 5');
               }
+              const number = summary.querySelector('.vc-rating-number');
+              if (number) number.textContent = Number(data.average || 0).toFixed(1) + '/5';
             }
             if (count) {
               count.textContent = String(data.count || 0) + ' rating' + (Number(data.count || 0) === 1 ? '' : 's');

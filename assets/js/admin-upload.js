@@ -111,7 +111,7 @@
 						sessionExists = true;
 						received = (status.received || []).map(Number).filter(function (n) { return n >= 0 && n < totalChunks; });
 						if (status.complete) {
-							completeUpload(uploadKey, file.name, file.size, upload.totalChunks);
+							completeUpload(uploadKey, file.name, file.size, totalChunks);
 							return;
 						}
 					} else {
