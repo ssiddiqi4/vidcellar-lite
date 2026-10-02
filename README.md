@@ -123,6 +123,7 @@ WordPress.org review fixes: distinctive plugin name/slug, enqueued admin JavaScr
 * Fixed a JavaScript error when resuming an upload whose chunks had all already reached the server.
 * Fixed a fatal error on the Videos page: the [vidcellar_browse] shortcode callback rejected the attributes WordPress passes.
 * Category names such as "Short Films" are no longer replaced by their slug once a video uses them, the active category tab is highlighted again, and video edit forms preselect the right category.
+* The Watch page shows the average rating once instead of twice, and updates it after a visitor rates.
 
 = 1.1.8 =
 * Enqueued the dashboard pricing stylesheet with wp_enqueue_style() instead of printing a style tag.
