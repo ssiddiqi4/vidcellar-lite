@@ -53,7 +53,9 @@ if ( ! function_exists( 'vidcellar_video_categories' ) ) {
     function vidcellar_video_categories(): array {
         global $wpdb;
 
-        $saved = get_option( 'vidcellar_video_categories', [] );
+        $saved = get_option( 'vidcellar_video_categories', null );
+        // Seed "General" only on a fresh install; an empty saved list means the admin deleted every category.
+        $seed  = ! is_array( $saved );
         if ( ! is_array( $saved ) ) {
             $saved = [];
         }
@@ -76,7 +78,7 @@ if ( ! function_exists( 'vidcellar_video_categories' ) ) {
 
         $categories = array_values( $categories );
 
-        if ( empty( $categories ) ) {
+        if ( empty( $categories ) && $seed ) {
             $categories = [ 'General' ];
         }
 
@@ -184,8 +186,8 @@ if ( ! function_exists( 'vidcellar_delete_video_category' ) ) {
      * Delete an administrator-defined video category.
      *
      * Videos in the deleted category move to "General" when it remains,
-     * otherwise to the first remaining category. The last category cannot be
-     * deleted, because every video needs one.
+     * otherwise to the first remaining category. When the last category is
+     * deleted, its videos become uncategorized.
      *
      * @param string $category Category name or slug.
      * @return array
@@ -213,11 +215,7 @@ if ( ! function_exists( 'vidcellar_delete_video_category' ) ) {
             return [ 'success' => false, 'error' => 'That category no longer exists.' ];
         }
 
-        if ( empty( $remaining ) ) {
-            return [ 'success' => false, 'error' => 'You cannot delete the only category. Add another category first.' ];
-        }
-
-        $target = $remaining[0];
+        $target = $remaining[0] ?? '';
         foreach ( $remaining as $existing ) {
             if ( 'general' === sanitize_title( $existing ) ) {
                 $target = $existing;
@@ -233,7 +231,7 @@ if ( ! function_exists( 'vidcellar_delete_video_category' ) ) {
             if ( vidcellar_normalize_video_category( (string) $value ) !== $slug ) {
                 continue;
             }
-            $updated = $wpdb->update( $table, [ 'category' => vidcellar_normalize_video_category( $target ) ], [ 'category' => $value ], [ '%s' ], [ '%s' ] );
+            $updated = $wpdb->update( $table, [ 'category' => '' === $target ? '' : vidcellar_normalize_video_category( $target ) ], [ 'category' => $value ], [ '%s' ], [ '%s' ] );
             if ( false === $updated ) {
                 return [ 'success' => false, 'error' => 'Could not move the videos out of this category. Nothing was deleted.' ];
             }

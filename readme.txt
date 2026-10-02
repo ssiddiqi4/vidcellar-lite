@@ -4,7 +4,7 @@ Tags: video, video streaming, video player, video categories
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.11
+Stable tag: 1.1.12
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -92,6 +92,9 @@ An optional Pro add-on is a separate premium product that is not included in thi
 
 == Upgrade Notice ==
 
+= 1.1.12 =
+The Delete button now shows on every category, including the last one.
+
 = 1.1.11 =
 Categories can now be deleted from VidCellar > Categories.
 
@@ -123,6 +126,10 @@ Removes the duplicate VidCellar admin submenu so Videos is the first item.
 WordPress.org review fixes: distinctive plugin name/slug, enqueued admin JavaScript, and reviews table schema compatibility.
 
 == Changelog ==
+
+= 1.1.12 =
+* The Delete button now shows on every category, including the last one. Deleting the last category leaves its videos uncategorized, and the Add Video form asks you to add a category first.
+* "General" is only created on a fresh install, so a deleted General category no longer comes back.
 
 = 1.1.11 =
 * Added: delete a category from VidCellar > Categories. Its videos move to General, or to the first remaining category. The last category cannot be deleted.
