@@ -496,6 +496,20 @@ class VidCellar_Admin {
                 ];
             }
     
+            if (self::has_post_flag('vidcellar_rename_category')) {
+                check_admin_referer('vidcellar_rename_category');
+
+                $result = vidcellar_rename_video_category((string) self::post_value('category_slug'), (string) self::post_value('category_name'));
+                $notice = [
+                    'type' => $result['success'] ? 'success' : 'error',
+                    'message' => $result['success']
+                        ? ($result['old'] === $result['category']
+                            ? 'No changes to save.'
+                            : sprintf('Category "%s" renamed to "%s".', $result['old'], $result['category']))
+                        : (string) ($result['error'] ?? 'Could not rename the category.'),
+                ];
+            }
+
             if (self::has_post_flag('vidcellar_delete_category')) {
                 check_admin_referer('vidcellar_delete_category');
 
@@ -527,7 +541,7 @@ class VidCellar_Admin {
                 <?php endif; ?>
     
                 <p>Add categories for your video library. Every category you add here is automatically added as a button to the <strong>Watch</strong> page and becomes available when adding or changing a video's category.</p>
-                <p>Deleting a category moves its videos to <strong>General</strong>, or to the first remaining category if General is gone. Deleting the last category leaves its videos uncategorized.</p>
+                <p>Deleting a category moves its videos to <strong>General</strong>, or to the first remaining category if General is gone. Deleting the last category leaves its videos uncategorized. Renaming a category keeps its videos in it.</p>
     
                 <h2>Add a category</h2>
                 <form method="post">
@@ -559,7 +573,7 @@ class VidCellar_Admin {
                             <th style="width:80px;">#</th>
                             <th>Category</th>
                             <th style="width:100px;">Videos</th>
-                            <th style="width:110px;"><span class="screen-reader-text">Actions</span></th>
+                            <th style="width:160px;"><span class="screen-reader-text">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -580,10 +594,20 @@ class VidCellar_Admin {
                             ?>
                             <tr>
                                 <td><?php echo  (int) ($index + 1) ?></td>
-                                <td><?php echo  esc_html($category) ?></td>
-                                <td><?php echo  (int) $count ?></td>
                                 <td>
-                                        <form method="post" style="margin:0;" onsubmit="return window.confirm(this.dataset.confirm);" data-confirm="<?php echo  esc_attr($confirm) ?>">
+                                    <span class="vc-category-name"><?php echo  esc_html($category) ?></span>
+                                    <form method="post" class="vc-category-edit" style="margin:0;" hidden>
+                                        <?php wp_nonce_field('vidcellar_rename_category'); ?>
+                                        <input type="hidden" name="category_slug" value="<?php echo  esc_attr($slug) ?>">
+                                        <input type="text" name="category_name" value="<?php echo  esc_attr($category) ?>" maxlength="50" required aria-label="<?php echo  esc_attr(sprintf('New name for category %s', $category)) ?>">
+                                        <button type="submit" name="vidcellar_rename_category" value="1" class="button button-primary button-small">Save</button>
+                                        <button type="button" class="button button-small" onclick="var r=this.closest('tr');r.querySelector('.vc-category-edit').hidden=true;r.querySelector('.vc-category-name').hidden=false;r.querySelector('.vc-category-edit-toggle').style.display='';">Cancel</button>
+                                    </form>
+                                </td>
+                                <td><?php echo  (int) $count ?></td>
+                                <td style="white-space:nowrap;">
+                                        <button type="button" class="button vc-category-edit-toggle" aria-label="<?php echo  esc_attr(sprintf('Edit category %s', $category)) ?>" onclick="var r=this.closest('tr');r.querySelector('.vc-category-edit').hidden=false;r.querySelector('.vc-category-name').hidden=true;this.style.display='none';r.querySelector('.vc-category-edit input[type=text]').focus();">Edit</button>
+                                        <form method="post" style="margin:0;display:inline;" onsubmit="return window.confirm(this.dataset.confirm);" data-confirm="<?php echo  esc_attr($confirm) ?>">
                                             <?php wp_nonce_field('vidcellar_delete_category'); ?>
                                             <input type="hidden" name="category_slug" value="<?php echo  esc_attr($slug) ?>">
                                             <button type="submit" name="vidcellar_delete_category" value="1" class="button button-link-delete" aria-label="<?php echo  esc_attr(sprintf('Delete category %s', $category)) ?>">Delete</button>

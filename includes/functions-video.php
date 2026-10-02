@@ -244,6 +244,79 @@ if ( ! function_exists( 'vidcellar_delete_video_category' ) ) {
     }
 }
 
+if ( ! function_exists( 'vidcellar_rename_video_category' ) ) {
+    /**
+     * Rename an administrator-defined video category.
+     *
+     * Videos in the category keep it under its new name.
+     *
+     * @param string $category Current category name or slug.
+     * @param string $new_name New category name.
+     * @return array
+     */
+    function vidcellar_rename_video_category( string $category, string $new_name ): array {
+        global $wpdb;
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return [ 'success' => false, 'error' => 'You do not have permission to edit categories.' ];
+        }
+
+        $new_name = trim( sanitize_text_field( $new_name ) );
+        if ( '' === $new_name ) {
+            return [ 'success' => false, 'error' => 'Please enter a category name.' ];
+        }
+        if ( strlen( $new_name ) > 50 ) {
+            return [ 'success' => false, 'error' => 'Category names must be 50 characters or fewer.' ];
+        }
+        $new_slug = sanitize_title( $new_name );
+        if ( '' === $new_slug ) {
+            return [ 'success' => false, 'error' => 'Please enter a valid category name.' ];
+        }
+
+        $slug       = vidcellar_normalize_video_category( $category );
+        $categories = vidcellar_video_categories();
+        $old_name   = '';
+        foreach ( $categories as $existing ) {
+            $existing_slug = sanitize_title( $existing );
+            if ( $existing_slug === $slug ) {
+                $old_name = $existing;
+            } elseif ( $existing_slug === $new_slug ) {
+                return [ 'success' => false, 'error' => sprintf( 'A category named "%s" already exists.', $existing ) ];
+            }
+        }
+
+        if ( '' === $slug || '' === $old_name ) {
+            return [ 'success' => false, 'error' => 'That category no longer exists.' ];
+        }
+
+        // Video rows store the slug, but older rows may hold the name, so match both forms.
+        $moved = 0;
+        if ( $new_slug !== $slug ) {
+            $table  = vidcellar_videos_table();
+            $stored = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT category FROM %i WHERE category <> ''", $table ) );
+            foreach ( (array) $stored as $value ) {
+                if ( vidcellar_normalize_video_category( (string) $value ) !== $slug ) {
+                    continue;
+                }
+                $updated = $wpdb->update( $table, [ 'category' => $new_slug ], [ 'category' => $value ], [ '%s' ], [ '%s' ] );
+                if ( false === $updated ) {
+                    return [ 'success' => false, 'error' => 'Could not update the videos in this category. The name was not changed.' ];
+                }
+                $moved += (int) $updated;
+            }
+        }
+
+        $renamed = [];
+        foreach ( $categories as $existing ) {
+            $renamed[] = sanitize_title( $existing ) === $slug ? $new_name : $existing;
+        }
+        natcasesort( $renamed );
+        update_option( 'vidcellar_video_categories', array_values( $renamed ), false );
+
+        return [ 'success' => true, 'old' => $old_name, 'category' => $new_name, 'moved' => $moved ];
+    }
+}
+
 if ( ! function_exists( 'vidcellar_video_url' ) ) {
     /**
      * Build the public Watch URL for a video.
