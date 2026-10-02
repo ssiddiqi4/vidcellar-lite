@@ -329,6 +329,9 @@ class VidCellar_Admin {
                                     <option value="<?php echo  esc_attr($videoCategory) ?>"><?php echo  esc_html($videoCategory) ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <?php if (empty(vidcellar_video_categories())): ?>
+                                <p class="description"><strong>There are no categories yet.</strong> <a href="<?php echo  esc_url(admin_url('admin.php?page=vidcellar-categories')) ?>">Add a category</a> before adding a video.</p>
+                            <?php endif; ?>
                             <p class="description">Categories are managed under <a href="<?php echo  esc_url(admin_url('admin.php?page=vidcellar-categories')) ?>">VidCellar → Categories</a>.</p>
                         </td></tr>
                         <tr><th><label for="vc_trailer_attachment_id">Trailer</label></th><td>
@@ -500,7 +503,9 @@ class VidCellar_Admin {
                 if ($result['success']) {
                     $message = sprintf('Category "%s" deleted.', $result['category']);
                     if ($result['moved'] > 0) {
-                        $message .= sprintf(' %d %s moved to "%s".', $result['moved'], 1 === $result['moved'] ? 'video was' : 'videos were', $result['target']);
+                        $message .= '' === $result['target']
+                            ? sprintf(' %d %s now uncategorized. Add a category to assign %s again.', $result['moved'], 1 === $result['moved'] ? 'video is' : 'videos are', 1 === $result['moved'] ? 'it' : 'them')
+                            : sprintf(' %d %s moved to "%s".', $result['moved'], 1 === $result['moved'] ? 'video was' : 'videos were', $result['target']);
                     }
                 }
                 $notice = [
@@ -522,7 +527,7 @@ class VidCellar_Admin {
                 <?php endif; ?>
     
                 <p>Add categories for your video library. Every category you add here is automatically added as a button to the <strong>Watch</strong> page and becomes available when adding or changing a video's category.</p>
-                <p>Deleting a category moves its videos to <strong>General</strong>, or to the first remaining category if General is gone. The last category can't be deleted.</p>
+                <p>Deleting a category moves its videos to <strong>General</strong>, or to the first remaining category if General is gone. Deleting the last category leaves its videos uncategorized.</p>
     
                 <h2>Add a category</h2>
                 <form method="post">
@@ -558,26 +563,31 @@ class VidCellar_Admin {
                         </tr>
                     </thead>
                     <tbody>
+                        <?php if (empty($categories)): ?>
+                            <tr><td colspan="4">No categories yet. Add one above before adding videos.</td></tr>
+                        <?php endif; ?>
                         <?php foreach ($categories as $index => $category): ?>
                             <?php
                             $slug = sanitize_title($category);
                             $count = (int) ($counts[$slug] ?? 0);
-                            $confirm = $count > 0
-                                ? sprintf('Delete the "%s" category? Its %d %s will move to another category.', $category, $count, 1 === $count ? 'video' : 'videos')
-                                : sprintf('Delete the "%s" category?', $category);
+                            if ($count === 0) {
+                                $confirm = sprintf('Delete the "%s" category?', $category);
+                            } elseif (count($categories) > 1) {
+                                $confirm = sprintf('Delete the "%s" category? Its %d %s will move to another category.', $category, $count, 1 === $count ? 'video' : 'videos');
+                            } else {
+                                $confirm = sprintf('Delete the "%s" category? It is the last category, so its %d %s will be uncategorized.', $category, $count, 1 === $count ? 'video' : 'videos');
+                            }
                             ?>
                             <tr>
                                 <td><?php echo  (int) ($index + 1) ?></td>
                                 <td><?php echo  esc_html($category) ?></td>
                                 <td><?php echo  (int) $count ?></td>
                                 <td>
-                                    <?php if (count($categories) > 1): ?>
                                         <form method="post" style="margin:0;" onsubmit="return window.confirm(this.dataset.confirm);" data-confirm="<?php echo  esc_attr($confirm) ?>">
                                             <?php wp_nonce_field('vidcellar_delete_category'); ?>
                                             <input type="hidden" name="category_slug" value="<?php echo  esc_attr($slug) ?>">
                                             <button type="submit" name="vidcellar_delete_category" value="1" class="button button-link-delete" aria-label="<?php echo  esc_attr(sprintf('Delete category %s', $category)) ?>">Delete</button>
                                         </form>
-                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
