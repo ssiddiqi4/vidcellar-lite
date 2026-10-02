@@ -493,7 +493,24 @@ class VidCellar_Admin {
                 ];
             }
     
+            if (self::has_post_flag('vidcellar_delete_category')) {
+                check_admin_referer('vidcellar_delete_category');
+
+                $result = vidcellar_delete_video_category((string) (self::post_value('category_slug')));
+                if ($result['success']) {
+                    $message = sprintf('Category "%s" deleted.', $result['category']);
+                    if ($result['moved'] > 0) {
+                        $message .= sprintf(' %d %s moved to "%s".', $result['moved'], 1 === $result['moved'] ? 'video was' : 'videos were', $result['target']);
+                    }
+                }
+                $notice = [
+                    'type' => $result['success'] ? 'success' : 'error',
+                    'message' => $result['success'] ? $message : (string) ($result['error'] ?? 'Could not delete the category.'),
+                ];
+            }
+
             $categories = vidcellar_video_categories();
+            $counts = vidcellar_video_category_counts();
             ?>
             <div class="wrap">
                 <h1>Video Categories</h1>
@@ -505,6 +522,7 @@ class VidCellar_Admin {
                 <?php endif; ?>
     
                 <p>Add categories for your video library. Every category you add here is automatically added as a button to the <strong>Watch</strong> page and becomes available when adding or changing a video's category.</p>
+                <p>Deleting a category moves its videos to <strong>General</strong>, or to the first remaining category if General is gone. The last category can't be deleted.</p>
     
                 <h2>Add a category</h2>
                 <form method="post">
@@ -535,13 +553,32 @@ class VidCellar_Admin {
                         <tr>
                             <th style="width:80px;">#</th>
                             <th>Category</th>
+                            <th style="width:100px;">Videos</th>
+                            <th style="width:110px;"><span class="screen-reader-text">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($categories as $index => $category): ?>
+                            <?php
+                            $slug = sanitize_title($category);
+                            $count = (int) ($counts[$slug] ?? 0);
+                            $confirm = $count > 0
+                                ? sprintf('Delete the "%s" category? Its %d %s will move to another category.', $category, $count, 1 === $count ? 'video' : 'videos')
+                                : sprintf('Delete the "%s" category?', $category);
+                            ?>
                             <tr>
                                 <td><?php echo  (int) ($index + 1) ?></td>
                                 <td><?php echo  esc_html($category) ?></td>
+                                <td><?php echo  (int) $count ?></td>
+                                <td>
+                                    <?php if (count($categories) > 1): ?>
+                                        <form method="post" style="margin:0;" onsubmit="return window.confirm(this.dataset.confirm);" data-confirm="<?php echo  esc_attr($confirm) ?>">
+                                            <?php wp_nonce_field('vidcellar_delete_category'); ?>
+                                            <input type="hidden" name="category_slug" value="<?php echo  esc_attr($slug) ?>">
+                                            <button type="submit" name="vidcellar_delete_category" value="1" class="button button-link-delete" aria-label="<?php echo  esc_attr(sprintf('Delete category %s', $category)) ?>">Delete</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
