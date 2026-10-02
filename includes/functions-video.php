@@ -68,7 +68,8 @@ if ( ! function_exists( 'vidcellar_video_categories' ) ) {
                 continue;
             }
             $slug = sanitize_title( $category );
-            if ( '' !== $slug ) {
+            // Saved names come first; a video row only stores the slug, so it must not replace the name.
+            if ( '' !== $slug && ! isset( $categories[ $slug ] ) ) {
                 $categories[ $slug ] = $category;
             }
         }
@@ -84,6 +85,24 @@ if ( ! function_exists( 'vidcellar_video_categories' ) ) {
         update_option( 'vidcellar_video_categories', $categories, false );
 
         return $categories;
+    }
+}
+
+if ( ! function_exists( 'vidcellar_video_category_label' ) ) {
+    /**
+     * Return the display name of a stored category slug.
+     *
+     * @param string $category Category slug or name.
+     * @return string
+     */
+    function vidcellar_video_category_label( $category ): string {
+        $slug = vidcellar_normalize_video_category( $category );
+        foreach ( vidcellar_video_categories() as $name ) {
+            if ( sanitize_title( $name ) === $slug ) {
+                return $name;
+            }
+        }
+        return (string) $category;
     }
 }
 

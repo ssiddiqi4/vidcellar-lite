@@ -93,7 +93,7 @@ An optional Pro add-on is a separate premium product that is not included in thi
 == Upgrade Notice ==
 
 = 1.1.9 =
-Fixes video uploads: every chunk of a new upload was rejected with "No valid upload chunk was received."
+Fixes video uploads (every chunk was rejected), a fatal error on the Videos page, and category names turning into slugs.
 
 = 1.1.8 =
 Enqueues the dashboard pricing stylesheet with wp_enqueue_style() instead of printing a style tag.
@@ -121,6 +121,8 @@ WordPress.org review fixes: distinctive plugin name/slug, enqueued admin JavaScr
 = 1.1.9 =
 * Fixed resumable uploads rejecting every raw chunk with "No valid upload chunk was received." (an operator-precedence bug in the upload error check).
 * Fixed a JavaScript error when resuming an upload whose chunks had all already reached the server.
+* Fixed a fatal error on the Videos page: the [vidcellar_browse] shortcode callback rejected the attributes WordPress passes.
+* Category names such as "Short Films" are no longer replaced by their slug once a video uses them, the active category tab is highlighted again, and video edit forms preselect the right category.
 
 = 1.1.8 =
 * Enqueued the dashboard pricing stylesheet with wp_enqueue_style() instead of printing a style tag.

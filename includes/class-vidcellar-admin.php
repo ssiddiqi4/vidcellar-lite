@@ -386,7 +386,7 @@ class VidCellar_Admin {
                                             <tr><th style="padding-left:0;">Access</th><td><strong>Free</strong></td></tr>
                                             <tr><th style="padding-left:0;"><label>Category</label></th><td><select name="category" required>
                                                 <?php foreach (vidcellar_video_categories() as $videoCategory): ?>
-                                                    <option value="<?php echo  esc_attr($videoCategory) ?>" <?php echo  strcasecmp((string) $v['category'], $videoCategory) === 0 ? 'selected' : '' ?>><?php echo  esc_html($videoCategory) ?></option>
+                                                    <option value="<?php echo  esc_attr($videoCategory) ?>" <?php echo  vidcellar_normalize_video_category((string) $v['category']) === vidcellar_normalize_video_category($videoCategory) ? 'selected' : '' ?>><?php echo  esc_html($videoCategory) ?></option>
                                                 <?php endforeach; ?>
                                             </select></td></tr>
                                             <?php $editTrailerId = absint($v['trailer_attachment_id'] ?? 0); ?>
@@ -429,7 +429,7 @@ class VidCellar_Admin {
                                     <select name="category" aria-label="Category for <?php echo  esc_attr($v['title']) ?>" required>
                                         <option value="" <?php echo  vidcellar_normalize_video_category((string) $v['category']) === '' ? 'selected' : '' ?>>Select category</option>
                                         <?php foreach (vidcellar_video_categories() as $videoCategory): ?>
-                                            <option value="<?php echo  esc_attr($videoCategory) ?>" <?php echo  strcasecmp((string) $v['category'], $videoCategory) === 0 ? 'selected' : '' ?>><?php echo  esc_html($videoCategory) ?></option>
+                                            <option value="<?php echo  esc_attr($videoCategory) ?>" <?php echo  vidcellar_normalize_video_category((string) $v['category']) === vidcellar_normalize_video_category($videoCategory) ? 'selected' : '' ?>><?php echo  esc_html($videoCategory) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                     <?php submit_button('Save', 'secondary small', 'vidcellar_update_video_category', false); ?>

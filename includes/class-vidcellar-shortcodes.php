@@ -8,8 +8,10 @@ class VidCellar_Shortcodes {
         add_shortcode( 'vidcellar_video', [ __CLASS__, 'render_video' ] );
     }
 
-public static function render_browse(bool $showCategoryTabs = false): string
+public static function render_browse($showCategoryTabs = false): string
     {
+        // As a shortcode callback this receives the attributes array (or ''), never a bool.
+        $showCategoryTabs = true === $showCategoryTabs;
         vidcellar_enqueue_frontend_assets();
         $keyword = isset( $_GET['vc_q'] ) ? sanitize_text_field( wp_unslash( $_GET['vc_q'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $category = isset( $_GET['vc_category'] ) ? sanitize_text_field( wp_unslash( $_GET['vc_category'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -128,7 +130,7 @@ public static function render_browse(bool $showCategoryTabs = false): string
                             <img src="<?php echo  esc_url(vidcellar_thumbnail_url($v['thumbnail'])) ?>" alt="<?php echo  esc_attr($v['title']) ?>">
                         <?php endif; ?>
                         <div class="vc-card-title"><?php echo  esc_html($v['title']) ?></div>
-                        <?php if (!empty($v['category'])): ?><div class="vc-card-category"><?php echo  esc_html($v['category']) ?></div><?php endif; ?>
+                        <?php if (!empty($v['category'])): ?><div class="vc-card-category"><?php echo  esc_html(vidcellar_video_category_label($v['category'])) ?></div><?php endif; ?>
                         <div class="vc-card-stats">
                             <span>👁 <?php echo  esc_html(number_format((int) $v['views'])) ?></span>
                             <?php echo wp_kses_post( vidcellar_rating_stars( (float) $v['rating'] ) ); ?>
@@ -208,7 +210,7 @@ private static function render_category_tabs(string $activeCategory = '', bool $
             <a class="vc-category-tab vc-most-watched-tab <?php echo  $mostWatched ? 'active' : '' ?>" href="<?php echo  esc_url(add_query_arg('vc_most_watched', '1', $baseUrl)) ?>">Most Watched</a>
             <a class="vc-category-tab <?php echo  (!$mostWatched && $activeCategory === '') ? 'active' : '' ?>" href="<?php echo  esc_url($baseUrl) ?>">All Films</a>
             <?php foreach ($categories as $category): ?>
-                <a class="vc-category-tab <?php echo  (!$mostWatched && $activeCategory === $category) ? 'active' : '' ?>" href="<?php echo  esc_url(add_query_arg('vc_category', $category, $baseUrl)) ?>">
+                <a class="vc-category-tab <?php echo  (!$mostWatched && $activeCategory === vidcellar_normalize_video_category($category)) ? 'active' : '' ?>" href="<?php echo  esc_url(add_query_arg('vc_category', $category, $baseUrl)) ?>">
                     <?php echo  esc_html($category) ?>
                 </a>
             <?php endforeach; ?>
