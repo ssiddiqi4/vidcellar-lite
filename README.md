@@ -4,7 +4,7 @@ Tags: video, video streaming, video player, video categories
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.10
+Stable tag: 1.1.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -92,6 +92,9 @@ An optional Pro add-on is a separate premium product that is not included in thi
 
 == Upgrade Notice ==
 
+= 1.1.11 =
+Categories can now be deleted from VidCellar > Categories.
+
 = 1.1.10 =
 Fixes a fatal error on every page load after updating when the Videos or Watch page was missing.
 
@@ -120,6 +123,10 @@ Removes the duplicate VidCellar admin submenu so Videos is the first item.
 WordPress.org review fixes: distinctive plugin name/slug, enqueued admin JavaScript, and reviews table schema compatibility.
 
 == Changelog ==
+
+= 1.1.11 =
+* Added: delete a category from VidCellar > Categories. Its videos move to General, or to the first remaining category. The last category cannot be deleted.
+* The Categories table now shows how many videos are in each category.
 
 = 1.1.10 =
 * Fixed a fatal error ("Call to a member function get_page_permastruct() on null") on every request after an update when the Videos or Watch page was missing: the upgrade created pages on plugins_loaded, before WordPress sets up permalinks. Pages are now created on init.

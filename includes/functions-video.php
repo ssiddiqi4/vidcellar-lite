@@ -156,6 +156,96 @@ if ( ! function_exists( 'vidcellar_add_video_category' ) ) {
     }
 }
 
+if ( ! function_exists( 'vidcellar_video_category_counts' ) ) {
+    /**
+     * Count the videos in each category.
+     *
+     * @return array Video counts keyed by category slug.
+     */
+    function vidcellar_video_category_counts(): array {
+        global $wpdb;
+
+        $table  = vidcellar_videos_table();
+        $rows   = $wpdb->get_results( $wpdb->prepare( "SELECT category, COUNT(*) AS total FROM %i GROUP BY category", $table ), ARRAY_A );
+        $counts = [];
+        foreach ( (array) $rows as $row ) {
+            $slug = vidcellar_normalize_video_category( (string) $row['category'] );
+            if ( '' !== $slug ) {
+                $counts[ $slug ] = ( $counts[ $slug ] ?? 0 ) + (int) $row['total'];
+            }
+        }
+
+        return $counts;
+    }
+}
+
+if ( ! function_exists( 'vidcellar_delete_video_category' ) ) {
+    /**
+     * Delete an administrator-defined video category.
+     *
+     * Videos in the deleted category move to "General" when it remains,
+     * otherwise to the first remaining category. The last category cannot be
+     * deleted, because every video needs one.
+     *
+     * @param string $category Category name or slug.
+     * @return array
+     */
+    function vidcellar_delete_video_category( string $category ): array {
+        global $wpdb;
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return [ 'success' => false, 'error' => 'You do not have permission to delete categories.' ];
+        }
+
+        $slug       = vidcellar_normalize_video_category( $category );
+        $categories = vidcellar_video_categories();
+        $name       = '';
+        $remaining  = [];
+        foreach ( $categories as $existing ) {
+            if ( sanitize_title( $existing ) === $slug ) {
+                $name = $existing;
+            } else {
+                $remaining[] = $existing;
+            }
+        }
+
+        if ( '' === $slug || '' === $name ) {
+            return [ 'success' => false, 'error' => 'That category no longer exists.' ];
+        }
+
+        if ( empty( $remaining ) ) {
+            return [ 'success' => false, 'error' => 'You cannot delete the only category. Add another category first.' ];
+        }
+
+        $target = $remaining[0];
+        foreach ( $remaining as $existing ) {
+            if ( 'general' === sanitize_title( $existing ) ) {
+                $target = $existing;
+                break;
+            }
+        }
+
+        // Video rows store the slug, but older rows may hold the name, so match both forms.
+        $table  = vidcellar_videos_table();
+        $stored = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT category FROM %i WHERE category <> ''", $table ) );
+        $moved  = 0;
+        foreach ( (array) $stored as $value ) {
+            if ( vidcellar_normalize_video_category( (string) $value ) !== $slug ) {
+                continue;
+            }
+            $updated = $wpdb->update( $table, [ 'category' => vidcellar_normalize_video_category( $target ) ], [ 'category' => $value ], [ '%s' ], [ '%s' ] );
+            if ( false === $updated ) {
+                return [ 'success' => false, 'error' => 'Could not move the videos out of this category. Nothing was deleted.' ];
+            }
+            $moved += (int) $updated;
+        }
+
+        update_option( 'vidcellar_video_categories', array_values( $remaining ), false );
+
+        return [ 'success' => true, 'category' => $name, 'moved' => $moved, 'target' => $target ];
+    }
+}
+
 if ( ! function_exists( 'vidcellar_video_url' ) ) {
     /**
      * Build the public Watch URL for a video.
